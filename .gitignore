@@ -1,0 +1,85 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+
+# ==============================
+# Node & Dependencies
+# ==============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==============================
+# Build Outputs
+# ==============================
+dist/
+build/
+out/
+
+# ==============================
+# Environment Files
+# ==============================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# ==============================
+# Logs
+# ==============================
+logs/
+*.log
+*.log.*
+log.txt
+
+# ==============================
+# TypeScript
+# ==============================
+*.tsbuildinfo
+
+# ==============================
+# OS-specific Files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# IDE / Editor Files
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================
+# Temporary Files
+# ==============================
+.tmp/
+temp/
+.cache/
+coverage/
+.nyc_output/
+
+# ==============================
+# Docker
+# ==============================
+docker-compose.override.yml
+*.pid
+
+# ==============================
+# Misc
+# ==============================
+*.tgz
+*.bak
+*.orig
