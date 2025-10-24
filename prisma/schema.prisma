@@ -5,19 +5,15 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x","debian-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
   previewFeatures = ["interactiveTransactions"]
 }
-
-
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-
 
 enum Role {
   ADMIN
@@ -44,82 +40,84 @@ enum ExamResultStatus {
 }
 
 model User {
-  id          String          @id @default(uuid())
-  name        String
-  email       String          @unique
-  password    String
-  role        Role
-  isActive    Boolean         @default(true)
-  lastLogin   DateTime?
+  id        String    @id @default(uuid())
+  firstName String    @map("first_name")
+  lastName  String    @map("last_name")
+  email     String    @unique
+  password  String
+  role      Role
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  refreshTokenHash String?
 
   studentProfile StudentProfile?
   teacherProfile TeacherProfile?
 
   // audit relations: which user created certain records
-  createdExams     Exam[]       @relation("ExamCreatedBy")
-  createdQuestions Question[]   @relation("QuestionCreatedBy")
+  createdExams     Exam[]     @relation("ExamCreatedBy")
+  createdQuestions Question[] @relation("QuestionCreatedBy")
 
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
 
 model StudentProfile {
-  id              String   @id @default(uuid())
-  regNo           String   @unique @map("student_registration_number")
-  classId         String
-  class           Class    @relation(fields: [classId], references: [id])
-  userId          String   @unique @map("user_id")
-  user            User     @relation(fields: [userId], references: [id])
+  id      String @id @default(uuid())
+  regNo   String @unique @map("student_registration_number")
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+  userId  String @unique @map("user_id")
+  user    User   @relation(fields: [userId], references: [id])
 
-  subjects        Subject[] @relation("StudentSubjects")
+  subjects        Subject[]        @relation("StudentSubjects")
   results         ExamResult[]
   answers         StudentAnswer[]
   examAssignments ExamAssignment[]
 
-  isDeleted       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deletedAt       DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  @@map("student_profile")
   @@index([classId])
+  @@map("student_profile")
 }
 
 model TeacherProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
 
-  subjects  Subject[] @relation("TeacherSubjects")
-  classes   Class[]   @relation("TeacherClasses")
+  subjects Subject[] @relation("TeacherSubjects")
+  classes  Class[]   @relation("TeacherClasses")
 
   // OPPOSITE relation fields added:
-  exams     Exam[]     // teacher → exams they own (fast lookup)
+  exams     Exam[] // teacher → exams they own (fast lookup)
   questions Question[] // teacher → authored questions
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("teacher_profile")
 }
 
 model Class {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   classType ClassType
 
-  students  StudentProfile[]
-  subjects  Subject[]
-  exams     Exam[]
-  teachers  TeacherProfile[] @relation("TeacherClasses")
+  students StudentProfile[]
+  subjects Subject[]
+  exams    Exam[]
+  teachers TeacherProfile[] @relation("TeacherClasses")
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@unique([name, classType])
@@ -127,59 +125,59 @@ model Class {
 }
 
 model Subject {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
-  code        String?  @unique
+  code        String? @unique
   description String?
 
-  classId     String?
-  class       Class?   @relation(fields: [classId], references: [id])
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id])
 
   // ownership: subject can have multiple teachers (co-teaching), and teachers can teach many subjects
-  teachers    TeacherProfile[] @relation("TeacherSubjects")
-  students    StudentProfile[] @relation("StudentSubjects")
+  teachers TeacherProfile[] @relation("TeacherSubjects")
+  students StudentProfile[] @relation("StudentSubjects")
 
   // canonical exams for this subject
-  exams       Exam[]
+  exams Exam[]
 
   // OPPOSITE relation field added:
-  questions   Question[]       // all questions in the question bank for this subject
+  questions Question[] // all questions in the question bank for this subject
 
-  isDeleted   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@unique([name, classId])
-  @@map("subjects")
   @@index([classId])
+  @@map("subjects")
 }
 
 model Exam {
-  id             String       @id @default(uuid())
-  title          String
-  description    String?
+  id          String  @id @default(uuid())
+  title       String
+  description String?
 
   // scheduling & control
-  date           DateTime?   // nominal scheduled date
-  startTime      DateTime?
-  endTime        DateTime?
-  duration       Int?        // minutes
-  questionCount  Int?
-  isPublished    Boolean     @default(false)
-  isRandomized   Boolean     @default(false)
+  date          DateTime? // nominal scheduled date
+  startTime     DateTime?
+  endTime       DateTime?
+  duration      Int? // minutes
+  questionCount Int?
+  isPublished   Boolean   @default(false)
+  isRandomized  Boolean   @default(false)
 
-  subjectId      String
-  subject        Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
-  classId        String?
-  class          Class?      @relation(fields: [classId], references: [id], onDelete: SetNull)
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id], onDelete: SetNull)
 
-  createdById    String?
-  createdBy      User?       @relation("ExamCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?   @relation("ExamCreatedBy", fields: [createdById], references: [id])
 
-  teacherId      String?
-  teacher        TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacherId String?
+  teacher   TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
   // children — DO NOT place onDelete on this side. Child side (Question) owns the referential action.
   questions      Question[]
@@ -187,18 +185,18 @@ model Exam {
   results        ExamResult[]
   assignments    ExamAssignment[]
 
-  status         ExamStatus   @default(DRAFT)
+  status ExamStatus @default(DRAFT)
 
   // soft delete & audit
-  isDeleted      Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  @@map("exams")
   @@index([subjectId])
   @@index([classId])
   @@index([teacherId])
+  @@map("exams")
 }
 
 model Option {
@@ -206,75 +204,75 @@ model Option {
   questionId String
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  label      String   // e.g. "A", "B"
-  text       String
-  isCorrect  Boolean  @default(false)
-  weight     Float?   // for partial credit
-  meta       Json?    // any media or additional metadata
+  label     String // e.g. "A", "B"
+  text      String
+  isCorrect Boolean @default(false)
+  weight    Float? // for partial credit
+  meta      Json? // any media or additional metadata
 
   // OPPOSITE relation field added:
   studentAnswers StudentAnswer[] // answers that selected this option (optional)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([questionId])
   @@map("options")
 }
 
 model Question {
-  id             String   @id @default(uuid())
-  text           String
+  id   String @id @default(uuid())
+  text String
 
-  options        Option[]
+  options Option[]
 
-  examId         String?
+  examId String?
   // child side holds the referential action for deletion of questions when exam deleted
-  exam           Exam?    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  exam   Exam?   @relation(fields: [examId], references: [id], onDelete: Cascade)
 
-  subjectId      String?
-  subject        Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
 
-  teacherId      String?
-  teacher        TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacherId String?
+  teacher   TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
-  createdById    String?
-  createdBy      User?    @relation("QuestionCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?   @relation("QuestionCreatedBy", fields: [createdById], references: [id])
 
-  answers        StudentAnswer[]
+  answers StudentAnswer[]
 
-  isDeleted      Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  @@map("questions")
   @@index([examId])
   @@index([subjectId])
+  @@map("questions")
 }
 
 model ExamAssignment {
-  id             String   @id @default(uuid())
-  examId         String
-  exam           Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
-  studentId      String
-  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id        String         @id @default(uuid())
+  examId    String
+  exam      Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  availableFrom  DateTime?
-  availableTo    DateTime?
+  availableFrom DateTime?
+  availableTo   DateTime?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([examId, studentId])
   @@map("exam_assignments")
 }
 
 model ExamResult {
-  id             String   @id @default(uuid())
-  studentId      String
-  examId         String
-  attempt        Int      @default(1)
+  id        String @id @default(uuid())
+  studentId String
+  examId    String
+  attempt   Int    @default(1)
 
   score          Float?
   correctCount   Int?
@@ -283,51 +281,51 @@ model ExamResult {
   grade          String?
   status         ExamResultStatus @default(PENDING)
 
-  startedAt      DateTime?
-  submittedAt    DateTime?
-  durationTaken  Int?     // seconds
+  startedAt     DateTime?
+  submittedAt   DateTime?
+  durationTaken Int? // seconds
 
-  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  exam           Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  exam    Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
 
-  answeredCount  Int?      @default(0)
+  answeredCount Int? @default(0)
 
-  isDeleted      Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@unique([studentId, examId, attempt])
-  @@map("exam_results")
   @@index([examId])
   @@index([studentId])
+  @@map("exam_results")
 }
 
 model StudentAnswer {
-  id             String   @id @default(uuid())
-  studentId      String
-  questionId     String
-  examId         String
+  id         String @id @default(uuid())
+  studentId  String
+  questionId String
+  examId     String
 
-  optionId       String?  // reference to Option chosen (preferred to string for referential integrity)
-  selectedText   String?  // fallback if option was free text or option model not used
-  isCorrect      Boolean?
-  savedAt        DateTime @default(now())
-  submittedAt    DateTime?
+  optionId     String? // reference to Option chosen (preferred to string for referential integrity)
+  selectedText String? // fallback if option was free text or option model not used
+  isCorrect    Boolean?
+  savedAt      DateTime  @default(now())
+  submittedAt  DateTime?
 
-  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  exam           Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
-  option         Option?        @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  exam     Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  option   Option?        @relation(fields: [optionId], references: [id], onDelete: SetNull)
 
-  isDeleted      Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@unique([studentId, questionId, examId])
-  @@map("student_answers")
   @@index([examId])
   @@index([studentId])
   @@index([questionId])
+  @@map("student_answers")
 }

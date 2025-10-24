@@ -83,3 +83,7 @@ docker-compose.override.yml
 *.tgz
 *.bak
 *.orig
+jwt_access_private.pem 
+jwt_access_public.pem
+jwt_refresh_private.pem
+jwt_refresh_public.pem
