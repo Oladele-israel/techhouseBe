@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 import { SecurityService } from "./module/security/security.service"
 import { AuthGuard } from "./common/guards/auth.guard"
 import { AuthService } from "./api/auth/auth.service"
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -15,6 +16,17 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
   })
+
+  //https://docs.nestjs.com/openapi/introduction
+  const config = new DocumentBuilder()
+    .setTitle('Testora API')
+    .setDescription('Exams CBT and school managent Api')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
 
   const securityService = app.get(SecurityService);
   const authService = app.get(AuthService);

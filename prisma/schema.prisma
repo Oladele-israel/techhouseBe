@@ -62,6 +62,8 @@ model User {
   createdExams     Exam[]     @relation("ExamCreatedBy")
   createdQuestions Question[] @relation("QuestionCreatedBy")
 
+  createdSchedules ExamSchedule[] @relation("UserCreatedSchedules")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -82,7 +84,9 @@ model StudentProfile {
   subjects        Subject[]        @relation("StudentSubjects")
   results         ExamResult[]
   answers         StudentAnswer[]
-  examAssignments ExamAssignment[]
+  examAssigned ExamAssignment[]
+
+  examAssignments ExamScheduleAssignment[]
 
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
@@ -190,6 +194,8 @@ model Exam {
   teacherId String?
   teacher   TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
+  schedules ExamSchedule[]
+
   // children — DO NOT place onDelete on this side. Child side (Question) owns the referential action.
   questions      Question[]
   studentAnswers StudentAnswer[]
@@ -209,6 +215,57 @@ model Exam {
   @@index([teacherId])
   @@map("exams")
 }
+
+model ExamSchedule {
+  id            String   @id @default(uuid())
+  
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  groupLabel    String
+  startTime     DateTime
+  endTime       DateTime
+  duration      Int?
+
+  createdById   String
+  createdBy     User     @relation("UserCreatedSchedules", fields: [createdById], references: [id], onDelete: Cascade)
+  
+  status        String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  totalStudents Int? 
+  failureReason String?
+
+  // background job tracking (optional)
+  jobId         String? // useful for queue job reference
+  processedAt   DateTime?
+
+  assignments   ExamScheduleAssignment[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([examId])
+  @@index([createdById])
+  @@map("exam_schedules")
+}
+
+
+model ExamScheduleAssignment {
+  id          String         @id @default(uuid())
+  scheduleId  String
+  schedule    ExamSchedule   @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([scheduleId, studentId])
+  @@index([scheduleId])
+  @@index([studentId])
+  @@map("exam_schedule_assignments")
+}
+
 
 model Option {
   id         String   @id @default(uuid())

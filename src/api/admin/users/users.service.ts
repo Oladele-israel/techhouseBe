@@ -48,9 +48,9 @@ export class UserService {
                             classes: {
                                 connect: dto.classIds.map((id) => ({ id })),
                             },
-                               gender: dto.gender,
-                        dateOfBirth: new Date(dto.dob),
-                        address: dto.address,
+                            gender: dto.gender,
+                            dateOfBirth: new Date(dto.dob),
+                            address: dto.address,
                         },
                     },
                 },
@@ -101,7 +101,6 @@ export class UserService {
             teachers,
         };
     }
-
 
     public async getTeacherById(id: string) {
         const teacher = await this.userRepo.findUser({
@@ -283,37 +282,40 @@ export class UserService {
             }
         }
 
-    //     const updatedStudent = await this.prisma.$transaction(async (tx) => {
-    //         // Update user table (basic info)
-    //         const updatedUser = await tx.user.update({
-    //             where: { id },
-    //             data: {
-    //                 firstName: dto.firstName ?? student.firstName,
-    //                 lastName: dto.lastName ?? student.lastName,
-    //                 email: dto.email ?? student.email,
-    //             },
-    //         });
+        //     const updatedStudent = await this.prisma.$transaction(async (tx) => {
+        //         // Update user table (basic info)
+        //         const updatedUser = await tx.user.update({
+        //             where: { id },
+        //             data: {
+        //                 firstName: dto.firstName ?? student.firstName,
+        //                 lastName: dto.lastName ?? student.lastName,
+        //                 email: dto.email ?? student.email,
+        //             },
+        //         });
 
-    //         // Update student profile (class, gender, etc.)
-    //         const updatedProfile = await tx.studentProfile.update({
-    //             where: { id: student.studentProfile?.id},
-    //             data: {
-    //                 classId: dto.classId ?? student.studentProfile?.classId,
-    //                 dob: dto.dob ? new Date(dto.dob) : student.studentProfile?.dateOfBirth,
-    //                 address: dto.address ?? student.studentProfile.address,
-    //             },
-    //             include: { class: true },
-    //         });
+        //         // Update student profile (class, gender, etc.)
+        //         const updatedProfile = await tx.studentProfile.update({
+        //             where: { id: student.studentProfile?.id},
+        //             data: {
+        //                 classId: dto.classId ?? student.studentProfile?.classId,
+        //                 dob: dto.dob ? new Date(dto.dob) : student.studentProfile?.dateOfBirth,
+        //                 address: dto.address ?? student.studentProfile.address,
+        //             },
+        //             include: { class: true },
+        //         });
 
-    //         return { ...updatedUser, studentProfile: updatedProfile };
-    //     });
+        //         return { ...updatedUser, studentProfile: updatedProfile };
+        //     });
 
-    //     const { password, ...safeData } = updatedStudent;
-    //     return {
-    //         message: 'Student profile updated successfully!',
-    //         student: safeData,
-    //     };
-    // }
+        //     const { password, ...safeData } = updatedStudent;
+        //     return {
+        //         message: 'Student profile updated successfully!',
+        //         student: safeData,
+        //     };
+        // }
 
-}
+    }
+
+    
+
 }
