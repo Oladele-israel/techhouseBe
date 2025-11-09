@@ -44,7 +44,6 @@ export class AuthService {
         if (!isPasswordOk) throw new UnauthorizedException("incorrect password!")
 
         const tokens = await this.securityService.generateTokens({ sub: user.id, role: user.role })
-        console.log("******these are the tokens*****", tokens)
         await this.storeRefreshToken(user.id, tokens.refreshToken)
         return { user: user, tokens }
     }

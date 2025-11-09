@@ -39,6 +39,11 @@ enum ExamResultStatus {
   COMPLETED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 model User {
   id        String    @id @default(uuid())
   firstName String    @map("first_name")
@@ -70,6 +75,9 @@ model StudentProfile {
   class   Class  @relation(fields: [classId], references: [id])
   userId  String @unique @map("user_id")
   user    User   @relation(fields: [userId], references: [id])
+  gender  Gender 
+  dateOfBirth DateTime @map("date_of_birth")
+  address String
 
   subjects        Subject[]        @relation("StudentSubjects")
   results         ExamResult[]
@@ -89,6 +97,9 @@ model TeacherProfile {
   id     String @id @default(uuid())
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
+  gender  Gender 
+  dateOfBirth DateTime @map("date_of_birth")
+  address String
 
   subjects Subject[] @relation("TeacherSubjects")
   classes  Class[]   @relation("TeacherClasses")
